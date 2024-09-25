@@ -469,7 +469,7 @@ components:
             type: array
             minItems: 0
             maxItems: 20
-            example: [ { "id": 1, "owner": "Roxy_Diya", "content": "test content", "createdAt": "2021-12-12T12:12:12.000Z" } ]
+            example: [ { "id": 1, "owner": "Roxy_Diya", "content": "test content", "createdAt": "2024-09-25T11:10:12.000Z" } ]
             items:
               $ref: "#/components/schemas/Comment"
   parameters:
@@ -515,7 +515,7 @@ components:
   schemas:
     Username:
       type: string
-      example: Roxy_Diya
+      example: Roxy_Diya_wow
       pattern: '^[a-zA-Z0-9_.]'
       minLength: 3
       maxLength: 16
@@ -581,7 +581,7 @@ components:
       description: Image object for the app WASAPhoto
       type: string
       minLength: 1
-      maxLength: 999999999999
+      maxLength: 999999
       format: binary
     Comment:
       title: Comment
@@ -600,7 +600,7 @@ components:
           pattern: '^[a-zA-Z0-9_.]'
           minLength: 1
           maxLength: 2048
-          example: "Nice photo"
+          example: "Cute pic!"
         createdAt:
           description: The date of the creation of the comment
           type: string
@@ -671,4 +671,4 @@ components:
           minLength: 1
           maxLength: 2048
           description: Success
-          example: Modifica avvenuta con successo
+          example: Updated successfully
