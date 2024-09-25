@@ -1,0 +1,674 @@
+openapi: "3.0.3"
+info:
+  title: WASAPhoto
+  description: |-
+    Keep in touch with your friends by sharing photos of special moments,
+    thanks to WASAPhoto! Directly from your PC,
+    you can upload your photos, and they will be visible to everyone
+    who is following you.
+  version: "1.0"
+
+tags:
+  - name: profile
+  - name: photo actions
+  - name: social actions
+  - name: comments
+
+
+paths:
+  /session:
+    post:
+      tags: [ "profile" ]
+      summary: Logs in the user
+      description: |-
+        If the user does not exist, it will be created,
+        and an identifier is returned otherwise it will return the user identifier.
+      operationId: doLogin
+      requestBody:
+        description: User details
+        content:
+          application/json:
+            schema:
+              description: User details
+              type: object
+              properties:
+                name: { $ref: "#/components/schemas/Username" }
+        required: true
+      responses:
+        201: { $ref: "#/components/responses/LoginMessage" }
+        400: { $ref: '#/components/responses/BadRequestError' }
+        500: { $ref: "#/components/responses/InternalServerError" }
+
+  /user/{authenticatedUserId}/update-username:
+    parameters:
+      - { $ref: "#/components/parameters/AuthenticatedUserId" }
+    put:
+      tags: [ "profile" ]
+      summary: Update the username
+      description: |
+        If the token in the header is valid, the username is updated
+        with the new one provided in the body.
+        If the username is not valid, a 400 respone will be shown.
+        If the token in the header is not valid, a 401 Unauthorized response will be shown.
+        If the username is already taken, then a Forbidden 403 response will be shown.
+      operationId: setMyUserName
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Username"
+      responses:
+        200: { $ref: "#/components/responses/UpdateUsername" }
+        400: { $ref: '#/components/responses/BadRequestError' }
+        401: { $ref: "#/components/responses/UnauthorizedError" }
+        403: { $ref: '#/components/responses/ForbiddenError' }
+        500: { $ref: "#/components/responses/InternalServerError" }
+      security:
+        - bearerAuth: [ ]
+
+  /user/{authenticatedUserId}/profile-page/{username}:
+    parameters:
+      - { $ref: "#/components/parameters/AuthenticatedUserId" }
+      - { $ref: "#/components/parameters/Username" }
+    get:
+      tags: [ "profile" ]
+      summary: Get the user profile page
+      description: |-
+        Get the user profile page with the list of photos uploaded by the user and the user information.
+        If the user is not banned by the owner of the profile, it will return the profile otherwise it will give an error.
+      operationId: getUserProfile
+      responses:
+        200: { $ref: "#/components/responses/UserProfilePage" }
+        400: { $ref: '#/components/responses/BadRequestError' }
+        401: { $ref: '#/components/responses/UnauthorizedError' }
+        403: { $ref: '#/components/responses/ForbiddenError' }
+        404: { $ref: '#/components/responses/NotFoundError' }
+        500: { $ref: "#/components/responses/InternalServerError" }
+      security:
+        - bearerAuth: [ ]
+
+  /user/{authenticatedUserId}/search/{username}:
+    parameters:
+      - { $ref: "#/components/parameters/AuthenticatedUserId" }
+      - { $ref: "#/components/parameters/Username" }
+    get:
+      tags: [ "profile" ]
+      summary: Get the list of all users with the username matching the string
+      description: |-
+        Get the list of all users that have the string passed in the path in their username.
+      operationId: getUsersList
+      responses:
+        200: { $ref: "#/components/responses/UsersList" }
+        401: { $ref: '#/components/responses/UnauthorizedError' }
+        404: { $ref: '#/components/responses/NotFoundError' }
+        500: { $ref: "#/components/responses/InternalServerError" }
+      security:
+        - bearerAuth: [ ]
+
+  /user/{authenticatedUserId}/photos/:
+    parameters:
+      - { $ref: "#/components/parameters/AuthenticatedUserId" }
+    get:
+      tags: [ "photos actions" ]
+      summary: Returns the stream of photos of the followed users
+      description: |-
+        Return the personal photos stream of the user in reverse chronological order.
+      operationId: getMyStream
+      responses:
+        200: { $ref: "#/components/responses/Photos" }
+        400: { $ref: '#/components/responses/BadRequestError' }
+        401: { $ref: "#/components/responses/UnauthorizedError" }
+        500: { $ref: "#/components/responses/InternalServerError" }
+      security:
+        - bearerAuth: [ ]
+    post:
+      tags: [ "photos actions" ]
+      summary: Post a photo
+      description: |-
+        Logged-in user posts a photo to the server which is added to user profile page.
+      operationId: uploadPhoto
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              description: Photo to upload
+              type: object
+              properties:
+                image: { $ref: "#/components/schemas/Image" }
+      responses:
+        201: { $ref: '#/components/responses/CreatedMessage' }
+        400: { $ref: '#/components/responses/BadRequestError' }
+        401: { $ref: "#/components/responses/UnauthorizedError" }
+        413: { $ref: '#/components/responses/ForbiddenError' }
+        415: { $ref: '#/components/responses/UnsupportedMediaTypeError' }
+        500: { $ref: "#/components/responses/InternalServerError" }
+      security:
+        - bearerAuth: [ ]
+
+  /user/{authenticatedUserId}/photos/{photoId}/:
+    parameters:
+      - { $ref: "#/components/parameters/AuthenticatedUserId" }
+      - { $ref: "#/components/parameters/PhotoId" }
+    get:
+      tags: [ "photos actions" ]
+      summary: Get the photo
+      description: |-
+        It returns the requested photo if the logged-in user is not banned by the author of the photo otherwise it returns an error.
+      operationId: getPhoto
+      responses:
+        200: { $ref: "#/components/responses/Photo" }
+        400: { $ref: '#/components/responses/BadRequestError' }
+        401: { $ref: "#/components/responses/UnauthorizedError" }
+        403: { $ref: '#/components/responses/ForbiddenError' }
+        404: { $ref: '#/components/responses/NotFoundError' }
+        500: { $ref: "#/components/responses/InternalServerError" }
+      security:
+        - bearerAuth: [ ]
+    delete:
+      tags: [ "photos actions" ]
+      summary: Delete the photo
+      description: |-
+        Delete the photo passed in the path only if the user in the authorization header
+        is the author of the photo.
+        The user must be logged in.
+      operationId: deletePhoto
+      responses:
+        204: { $ref: '#/components/responses/NoContentMessage' }
+        400: { $ref: '#/components/responses/BadRequestError' }
+        401: { $ref: "#/components/responses/UnauthorizedError" }
+        403: { $ref: '#/components/responses/ForbiddenError' }
+        404: { $ref: '#/components/responses/NotFoundError' }
+        500: { $ref: "#/components/responses/InternalServerError" }
+      security:
+        - bearerAuth: [ ]
+
+  /user/{authenticatedUserId}/follow/{username}:
+    parameters:
+      - { $ref: "#/components/parameters/AuthenticatedUserId" }
+      - { $ref: "#/components/parameters/Username" }
+    put:
+      tags: [ "social actions" ]
+      summary: Follow an user
+      description: |-
+        Follow the user with the username specified in the path if the user isn't already followed.
+      operationId: followUser
+      responses:
+        201: { $ref: '#/components/responses/CreatedMessage' }
+        400: { $ref: '#/components/responses/BadRequestError' }
+        401: { $ref: "#/components/responses/UnauthorizedError" }
+        403: { $ref: '#/components/responses/ForbiddenError' }
+        404: { $ref: '#/components/responses/NotFoundError' }
+        500: { $ref: "#/components/responses/InternalServerError" }
+      security:
+        - bearerAuth: [ ]
+    delete:
+      tags: [ "social actions" ]
+      summary: Unfollow a user
+      description: |-
+        Unfollow the user with the username specified in the path if the user is followed.
+      operationId: unfollowUser
+      responses:
+        204: { $ref: '#/components/responses/NoContentMessage' }
+        400: { $ref: '#/components/responses/BadRequestError' }
+        401: { $ref: "#/components/responses/UnauthorizedError" }
+        403: { $ref: '#/components/responses/ForbiddenError' }
+        404: { $ref: '#/components/responses/NotFoundError' }
+        500: { $ref: "#/components/responses/InternalServerError" }
+      security:
+        - bearerAuth: [ ]
+
+  /user/{authenticatedUserId}/ban/{username}:
+    parameters:
+      - { $ref: "#/components/parameters/AuthenticatedUserId" }
+      - { $ref: "#/components/parameters/Username" }
+    put:
+      tags: [ "social actions" ]
+      summary: Ban an user
+      description: |-
+        It adds the user with `userId` given in path to the bans of the logged-in user so essentially it bans the user.
+      operationId: banUser
+      responses:
+        201: { $ref: '#/components/responses/CreatedMessage' }
+        400: { $ref: '#/components/responses/BadRequestError' }
+        401: { $ref: "#/components/responses/UnauthorizedError" }
+        403: { $ref: '#/components/responses/ForbiddenError' }
+        404: { $ref: '#/components/responses/NotFoundError' }
+        500: { $ref: "#/components/responses/InternalServerError" }
+      security:
+        - bearerAuth: [ ]
+    delete:
+      tags: [ "social actions" ]
+      summary: Remove a ban
+      description: |-
+        Removes the user passed in the path from the banned
+        list of the user with the authorization header
+      operationId: unbanUser
+      responses:
+        204: { $ref: '#/components/responses/NoContentMessage' }
+        400: { $ref: '#/components/responses/BadRequestError' }
+        401: { $ref: "#/components/responses/UnauthorizedError" }
+        403: { $ref: '#/components/responses/ForbiddenError' }
+        404: { $ref: '#/components/responses/NotFoundError' }
+        500: { $ref: "#/components/responses/InternalServerError" }
+      security:
+        - bearerAuth: [ ]
+
+  /user/{username}/photos/{photoId}/likes/{authenticatedUserId}:
+    parameters:
+      - { $ref: "#/components/parameters/Username" }
+      - { $ref: "#/components/parameters/PhotoId" }
+      - { $ref: "#/components/parameters/AuthenticatedUserId" }
+    put:
+      tags: [ "photos actions" ]
+      summary: Add a like to a photo
+      description: |-
+        If the logged-in user is not banned by the author of the the photo with
+        `photoId` given in path, it adds a like to the photo otherwise it returns an error.
+      operationId: likePhoto
+      responses:
+        201: { $ref: '#/components/responses/CreatedMessage' }
+        401: { $ref: "#/components/responses/UnauthorizedError" }
+        403: { $ref: '#/components/responses/ForbiddenError' }
+        404: { $ref: '#/components/responses/NotFoundError' }
+        400: { $ref: '#/components/responses/BadRequestError' }
+        500: { $ref: "#/components/responses/InternalServerError" }
+      security:
+        - bearerAuth: [ ]
+    delete:
+      tags: [ "photos actions" ]
+      summary: Remove the like from the photo
+      description: |-
+        It removes the like from the photo with `photoId` given in path
+        If the photo does not exist, the response is 404 Not Found.
+      operationId: unlikePhoto
+      responses:
+        204: { $ref: '#/components/responses/NoContentMessage' }
+        400: { $ref: '#/components/responses/BadRequestError' }
+        401: { $ref: "#/components/responses/UnauthorizedError" }
+        403: { $ref: '#/components/responses/ForbiddenError' }
+        404: { $ref: '#/components/responses/NotFoundError' }
+        500: { $ref: "#/components/responses/InternalServerError" }
+      security:
+        - bearerAuth: [ ]
+    get:
+      tags: ["photos actions"]
+      summary: Gets the likes for a photo
+      description: |-
+        If the logged-in user is not banned by the author of the photo, it returns
+        the list of users who liked the photo; otherwise it returns an error.
+      operationId: getLikes
+      responses:
+        200: { $ref: "#/components/responses/UsersList" }
+        400: { $ref: '#/components/responses/BadRequestError' }
+        401: { $ref: "#/components/responses/UnauthorizedError" }
+        403: { $ref: '#/components/responses/ForbiddenError' }
+        404: { $ref: '#/components/responses/NotFoundError' }
+        500: { $ref: "#/components/responses/InternalServerError" }
+
+  /user/{username}/photos/{photoId}/comments/:
+    parameters:
+      - { $ref: "#/components/parameters/Username" }
+      - { $ref: "#/components/parameters/PhotoId" }
+    get:
+      tags: [ "photos actions" ]
+      summary: Returns the comments of a photo
+      description: |-
+        If the logged-in user is not banned by the author of the photo, it returns
+        the list of comments of the photo; otherwise it returns an error.
+      operationId: getPhotoComments
+      responses:
+        200: { $ref: '#/components/responses/Comments' }
+        400: { $ref: '#/components/responses/BadRequestError' }
+        401: { $ref: "#/components/responses/UnauthorizedError" }
+        403: { $ref: '#/components/responses/ForbiddenError' }
+        404: { $ref: '#/components/responses/NotFoundError' }
+        500: { $ref: "#/components/responses/InternalServerError" }
+      security:
+        - bearerAuth: [ ]
+    post:
+      tags: [ "photos actions" ]
+      summary: Create a comment for a photo
+      description: |-
+        If the logged-in user is not banned by the author of the photo, it adds
+        a comment to the photo written by the logged-in user;
+      operationId: commentPhoto
+      requestBody:
+        content:
+          application/json:
+            schema:
+              { $ref: "#/components/schemas/Comment" }
+      responses:
+        201: { $ref: '#/components/responses/CreatedMessage' }
+        400: { $ref: '#/components/responses/BadRequestError' }
+        401: { $ref: "#/components/responses/UnauthorizedError" }
+        403: { $ref: '#/components/responses/ForbiddenError' }
+        404: { $ref: '#/components/responses/NotFoundError' }
+        500: { $ref: "#/components/responses/InternalServerError" }
+      security:
+        - bearerAuth: [ ]
+
+  /user/{username}/photos/{photoId}/comments/{commentId}:
+    parameters:
+      - { $ref: "#/components/parameters/Username" }
+      - { $ref: "#/components/parameters/PhotoId" }
+      - { $ref: "#/components/parameters/CommentId" }
+    delete:
+      tags: [ "comments" ]
+      summary: Delete a comment
+      description: |-
+        Delete the comment passed in the path only if the user is the author of it
+      operationId: uncommentPhoto
+      responses:
+        200: { $ref: '#/components/responses/NoContentMessage' }
+        400: { $ref: '#/components/responses/BadRequestError' }
+        401: { $ref: "#/components/responses/UnauthorizedError" }
+        403: { $ref: '#/components/responses/ForbiddenError' }
+        404: { $ref: '#/components/responses/NotFoundError' }
+        500: { $ref: "#/components/responses/InternalServerError" }
+      security:
+        - bearerAuth: [ ]
+
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: integer
+  responses:
+    UnauthorizedError:
+      description: The token is not valid, or the user is not authorized to access the resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
+    NotFoundError:
+      description: The resource is not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
+    BadRequestError:
+      description: The request is not valid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
+    ForbiddenError:
+      description: The user is not authorized to access the resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ForbiddenError'
+    CreatedMessage:
+      description: The resource is created
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CreatedMessage'
+    NoContentMessage:
+      description: The resource is deleted
+    LoginMessage:
+      description: User log-in action successful
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserIdentifier'
+    UpdateUsername:
+      description: Username updated successfully
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UpdateMessage'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ForbiddenError'
+    UserProfilePage:
+      description: User profile page
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/UserProfilePage"
+    UsersList:
+      description: User profile list
+      content:
+        application/json:
+          schema:
+            description: List of users
+            type: array
+            minItems: 0
+            maxItems: 20
+            items:
+              $ref: "#/components/schemas/Username"
+    Photos:
+      description: User photos stream
+      content:
+        application/json:
+          schema:
+            description: User photos stream
+            type: array
+            minItems: 0
+            maxItems: 20
+            items:
+              $ref: "#/components/schemas/Photo"
+    Photo:
+      description: The binary data of the photo
+      content:
+        image/jpeg:
+          schema:
+            $ref: '#/components/schemas/Image'
+    Comments:
+      description: List of Comments retrieved successfully
+      content:
+        application/json:
+          schema:
+            description: List of Comments
+            type: array
+            minItems: 0
+            maxItems: 20
+            example: [ { "id": 1, "owner": "Roxy_Diya", "content": "test content", "createdAt": "2021-12-12T12:12:12.000Z" } ]
+            items:
+              $ref: "#/components/schemas/Comment"
+  parameters:
+    AuthenticatedUserId:
+      name: authenticatedUserId
+      schema:
+        type: integer
+        example: 1
+        description: The user id
+      in: path
+      required: true
+      description: The user id
+    PhotoId:
+      name: photoId
+      schema:
+        type: integer
+        example: 1
+        description: The photo id
+      in: path
+      required: true
+      description: The unique photo identifier
+    CommentId:
+      name: commentId
+      schema:
+        type: integer
+        example: 1
+        description: The comment id
+      in: path
+      required: true
+      description: The unique comment identifier
+    Username:
+      name: username
+      schema:
+        type: string
+        example: Roxy_Diya
+        pattern: '^[a-zA-Z0-9_.]'
+        minLength: 3
+        maxLength: 16
+        description: The username
+      in: path
+      required: true
+      description: Username of the user decided by the user during the registration
+  schemas:
+    Username:
+      type: string
+      example: Roxy_Diya
+      pattern: '^[a-zA-Z0-9_.]'
+      minLength: 3
+      maxLength: 16
+      description: Username of the user decided by the user during the registration
+    Photo:
+      title: Photo
+      description: Photo object for the app WASAPhoto
+      type: object
+      properties:
+        id:
+          description: The unique photo identifier
+          type: integer
+          example: 1
+        owner:
+          $ref: "#/components/schemas/Username"
+        createdAt:
+          description: The date of the creation of the photo
+          type: string
+          format: date-time
+        numberOfLikes:
+          description: The number of likes of the photo
+          type: integer
+          example: 200
+        numberOfComments:
+          description: The number of comments of the photo
+          type: integer
+          example: 20
+    Photos:
+      title: Photos
+      type: array
+      minItems: 0
+      maxItems: 20
+      description: List of photos
+      items:
+        $ref: "#/components/schemas/Photo"
+    UserProfilePage:
+      title: UserProfile
+      description: |-
+        This is the user profile page
+        It contains the user information and the photos uploaded by the user
+      type: object
+      properties:
+        id:
+          description: User id
+          type: integer
+          example: 1
+        username: { $ref: "#/components/schemas/Username" }
+        photos: { $ref: "#/components/schemas/Photos" }
+        numberOfPhotos:
+          description: Photos count
+          type: integer
+          example: 2
+        numberOfFollowers:
+          description: Followers count
+          type: integer
+          example: 340
+        numberOfFollowing:
+          description: Followers count
+          type: integer
+          example: 400
+    Image:
+      title: Image
+      description: Image object for the app WASAPhoto
+      type: string
+      minLength: 1
+      maxLength: 999999999999
+      format: binary
+    Comment:
+      title: Comment
+      description: Comment object for the app WASAPhoto
+      type: object
+      properties:
+        id:
+          description: The unique comment identifier
+          type: integer
+          example: 1
+        owner:
+          $ref: "#/components/schemas/Username"
+        content:
+          description: The content of the comment
+          type: string
+          pattern: '^[a-zA-Z0-9_.]'
+          minLength: 1
+          maxLength: 2048
+          example: "Nice photo"
+        createdAt:
+          description: The date of the creation of the comment
+          type: string
+          minLength: 1
+          maxLength: 2048
+          format: date-time
+        photo:
+          description: The unique photo identifier
+          type: integer
+          example: 1
+    ErrorMessage:
+      title: Error
+      type: object
+      description: The error message
+      example: { "message": "Error message" }
+      properties:
+        message:
+          type: string
+          pattern: '^[a-zA-Z0-9_.]'
+          minLength: 1
+          maxLength: 2048
+          description: error message
+          example: The token is not valid, or the user is not authorized to access the resource
+    ForbiddenError:
+      title: ForbiddenError
+      type: object
+      description: The error message
+      example: { "message": "Forbidden action" }
+      properties:
+        message:
+          type: string
+          pattern: '^[a-zA-Z0-9_.]'
+          minLength: 1
+          maxLength: 2048
+          description: error message
+          example: The user is not authorized to access the resource
+    CreatedMessage:
+      title: Creation Message
+      description: The message of the resource creation
+      example: { "message": "The resource is created" }
+      type: object
+      properties:
+        message:
+          type: string
+          pattern: '^[a-zA-Z0-9_.]'
+          minLength: 1
+          maxLength: 2048
+          description: success message
+          example: The resource is created
+    UserIdentifier:
+      title: User Identifier
+      description: The message of the log-in action
+      type: object
+      properties:
+        identifier:
+          description: The identifier of the user
+          type: integer
+          example: 1
+    UpdateMessage:
+      title: Update Message
+      description: The message of the resource update
+      type: object
+      example: { "message": "The resource is updated" }
+      properties:
+        message:
+          type: string
+          pattern: '^[a-zA-Z0-9_.]'
+          minLength: 1
+          maxLength: 2048
+          description: Success
+          example: Modifica avvenuta con successo
