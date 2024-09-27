@@ -140,7 +140,6 @@ paths:
         400: { $ref: '#/components/responses/BadRequestError' }
         401: { $ref: "#/components/responses/UnauthorizedError" }
         413: { $ref: '#/components/responses/ForbiddenError' }
-        415: { $ref: '#/components/responses/UnsupportedMediaTypeError' }
         500: { $ref: "#/components/responses/InternalServerError" }
       security:
         - bearerAuth: [ ]
@@ -178,6 +177,7 @@ paths:
         401: { $ref: "#/components/responses/UnauthorizedError" }
         403: { $ref: '#/components/responses/ForbiddenError' }
         404: { $ref: '#/components/responses/NotFoundError' }
+        415: { $ref: '#/components/responses/UnsupportedMediaTypeError' }
         500: { $ref: "#/components/responses/InternalServerError" }
       security:
         - bearerAuth: [ ]
@@ -400,6 +400,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ForbiddenError'
+    UnsupportedMediaTypeError:
+      description: Content media type provided in request is not supported.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UnsupportedMediaTypeError'
     CreatedMessage:
       description: The resource is created
       content:
@@ -580,8 +586,8 @@ components:
       title: Image
       description: Image object for the app WASAPhoto
       type: string
-      minLength: 1
-      maxLength: 999999
+      minLength: 536
+      maxLength: 10485760 # 10MB
       format: binary
     Comment:
       title: Comment
@@ -599,13 +605,13 @@ components:
           type: string
           pattern: '^[a-zA-Z0-9_.]'
           minLength: 1
-          maxLength: 2048
+          maxLength: 20
           example: "Cute pic!"
         createdAt:
           description: The date of the creation of the comment
           type: string
           minLength: 1
-          maxLength: 2048
+          maxLength: 20
           format: date-time
         photo:
           description: The unique photo identifier
@@ -621,7 +627,20 @@ components:
           type: string
           pattern: '^[a-zA-Z0-9_.]'
           minLength: 1
-          maxLength: 2048
+          maxLength: 30
+          description: error message
+          example: The token is not valid, or the user is not authorized to access the resource
+    UnsupportedMediaTypeError:
+      title: UnsupportedMediaTypeError
+      type: object
+      description: The error message
+      example: { "message": "Media type not supported" }
+      properties:
+        message:
+          type: string
+          pattern: '^[a-zA-Z0-9_.]'
+          minLength: 1
+          maxLength: 30
           description: error message
           example: The token is not valid, or the user is not authorized to access the resource
     ForbiddenError:
@@ -634,7 +653,7 @@ components:
           type: string
           pattern: '^[a-zA-Z0-9_.]'
           minLength: 1
-          maxLength: 2048
+          maxLength: 30
           description: error message
           example: The user is not authorized to access the resource
     CreatedMessage:
@@ -647,7 +666,7 @@ components:
           type: string
           pattern: '^[a-zA-Z0-9_.]'
           minLength: 1
-          maxLength: 2048
+          maxLength: 30
           description: success message
           example: The resource is created
     UserIdentifier:
@@ -669,6 +688,6 @@ components:
           type: string
           pattern: '^[a-zA-Z0-9_.]'
           minLength: 1
-          maxLength: 2048
+          maxLength: 30
           description: Success
           example: Updated successfully
