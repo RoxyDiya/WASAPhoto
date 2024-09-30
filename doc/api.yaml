@@ -10,7 +10,7 @@ info:
 
 tags:
   - name: profile
-  - name: photo actions
+  - name: photos actions
   - name: social actions
   - name: comments
 
@@ -310,7 +310,7 @@ paths:
       - { $ref: "#/components/parameters/Username" }
       - { $ref: "#/components/parameters/PhotoId" }
     get:
-      tags: [ "photos actions" ]
+      tags: [ "comments"]
       summary: Returns the comments of a photo
       description: |-
         If the logged-in user is not banned by the author of the photo, it returns
@@ -326,7 +326,7 @@ paths:
       security:
         - bearerAuth: [ ]
     post:
-      tags: [ "photos actions" ]
+      tags: [ "comments" ]
       summary: Create a comment for a photo
       description: |-
         If the logged-in user is not banned by the author of the photo, it adds
