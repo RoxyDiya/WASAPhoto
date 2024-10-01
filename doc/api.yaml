@@ -401,13 +401,13 @@ components:
           schema:
             $ref: '#/components/schemas/ForbiddenError'
     UnsupportedMediaTypeError:
-      description: Content media type provided in request is not supported.
+      description: Content media type provided in the request is not supported.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/UnsupportedMediaTypeError'
     CreatedMessage:
-      description: The resource is created
+      description: The resource has been created
       content:
         application/json:
           schema:
