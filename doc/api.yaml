@@ -475,7 +475,7 @@ components:
             type: array
             minItems: 0
             maxItems: 20
-            example: [ { "id": 1, "owner": "Roxy_Diya", "content": "test content", "createdAt": "2024-09-25T11:10:12.000Z" } ]
+            example: [ { "id": 1, "owner": "Roxy_Diya", "content": "test content", "createdAt": "2024-09-25T11:10" } ]
             items:
               $ref: "#/components/schemas/Comment"
   parameters:
@@ -629,7 +629,7 @@ components:
           minLength: 1
           maxLength: 30
           description: error message
-          example: The token is not valid, or the user is not authorized to access the resource
+          example: Invalid token or not allowed
     UnsupportedMediaTypeError:
       title: UnsupportedMediaTypeError
       type: object
@@ -642,7 +642,7 @@ components:
           minLength: 1
           maxLength: 30
           description: error message
-          example: The token is not valid, or the user is not authorized to access the resource
+          example: Invalid token or not allowed
     ForbiddenError:
       title: ForbiddenError
       type: object
@@ -655,7 +655,7 @@ components:
           minLength: 1
           maxLength: 30
           description: error message
-          example: The user is not authorized to access the resource
+          example: Unauthorized User
     CreatedMessage:
       title: Creation Message
       description: The message of the resource creation
