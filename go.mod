@@ -1,4 +1,4 @@
-module hilo.uniroma1.it/hilo
+module github.com/RoxyDiya/WASAPhoto
 
 go 1.17
 

@@ -1,0 +1,12 @@
+FROM node:lts as builder
+WORKDIR /src/
+COPY webui webui
+WORKDIR /src/webui
+RUN npm install
+RUN npm run build-prod
+
+FROM nginx:stable as stage
+RUN rm -f /usr/share/nginx/html/index.html
+COPY --from=builder /src/webui/dist/ /usr/share/nginx/html/
+WORKDIR /src/
+COPY nginx.conf /etc/nginx/conf.d/default.conf

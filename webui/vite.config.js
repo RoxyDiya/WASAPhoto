@@ -12,10 +12,20 @@ export default defineConfig(({command, mode, ssrBuild}) => {
 				'@': fileURLToPath(new URL('./src', import.meta.url))
 			}
 		},
+		devServer: {
+			proxy: 'http://localhost:3000/',
+			port:3000,
+		},
+		publicPath: JSON.stringify("http://localhost:3000")
 	};
-	ret.define = {
-		// Do not modify this constant, it is used in the evaluation.
-		"__API_URL__": JSON.stringify("http://localhost:3000"),
-	};
+	if (command === 'serve') {
+		ret.define = {
+			"__API_URL__": JSON.stringify("http://localhost:3000"),
+		};
+	} else {
+		ret.define = {
+			"__API_URL__": JSON.stringify("http://localhost:3000"),
+		};
+	}
 	return ret;
 })

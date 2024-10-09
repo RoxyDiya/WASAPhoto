@@ -1,0 +1,12 @@
+FROM golang:1.19.2 as builder
+WORKDIR /src/
+COPY . .
+RUN go build -o /tmp/webapi ./cmd/webapi/
+
+FROM debian:stable
+COPY --from=builder /tmp/webapi /bin/webapi
+WORKDIR /src/
+RUN mkdir -p public/images/
+COPY public/images/icon_standard.png public/images/
+RUN chmod 0777 public/images/
+CMD ["/bin/webapi"]
