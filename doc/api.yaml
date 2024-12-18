@@ -359,7 +359,7 @@ paths:
         Delete the comment passed in the path only if the user is the author of it
       operationId: uncommentPhoto
       responses:
-        "200": { $ref: '#/components/responses/NoContentMessage' }
+        "204": { $ref: '#/components/responses/NoContentMessage' }
         "400": { $ref: '#/components/responses/BadRequestError' }
         "401": { $ref: "#/components/responses/UnauthorizedError" }
         "403": { $ref: '#/components/responses/ForbiddenError' }
@@ -520,7 +520,7 @@ components:
       description: Username of the user decided by the user during the registration
   schemas:
     Username:
-      type: object
+      type: string
       example: Roxy_Diya_wow
       pattern: '^[a-zA-Z0-9_.]'
       minLength: 3
@@ -540,6 +540,8 @@ components:
         createdAt:
           description: The date of the creation of the photo
           type: string
+          minLength: 1  
+          maxLength: 30
           format: date-time
         numberOfLikes:
           description: The number of likes of the photo
@@ -611,7 +613,7 @@ components:
           description: The date of the creation of the comment
           type: string
           minLength: 1
-          maxLength: 20
+          maxLength: 30
           format: date-time
         photo:
           description: The unique photo identifier
