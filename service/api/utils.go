@@ -15,7 +15,7 @@ import (
 // Helper to send a JSON response with a status code
 func sendJSONResponse(w http.ResponseWriter, statusCode int, message string) error {
 	w.WriteHeader(statusCode)
-	res := structs.Message{Message: message}
+	res := Message{Message: message}
 	return json.NewEncoder(w).Encode(res)
 }
 
